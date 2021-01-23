@@ -17,6 +17,10 @@ public class Test {
             PrintStream printer = new PrintStream(client.getOutputStream());
 	    Boolean isKeepGoing = true;
 	    while (isKeepGoing) {
+	    System.out.println("Waiting for response");
+	    String response = scanner.nextLine();
+	    System.out.println("response gotten");
+	    System.out.println(response);
             printer.println("Hello client\nHi client");
 	    }
             socket.close();

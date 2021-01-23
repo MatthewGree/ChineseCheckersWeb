@@ -3,7 +3,7 @@
 var canSend = false;
 var moveFrom = "";
 
-var socket = new Websock();
+var socket = new Websock("ws://localhost:4888");
 
 function handleClick(id) {
 	if (canSend && moveFrom != "") {
@@ -56,11 +56,9 @@ function fillWithCheckers(players) {
 function initServerConnection() {
 	socket.open("ws://localhost:4888");
 	console.log("waiting for response");
-	var response = getResponse();
-	console.log("response gotten: " + getResponse());
+	console.log("response gotten: ");
 	console.log("waiting for response");
-	var response = getResponse();
-	console.log("response gotten: " + getResponse());
+	console.log("response gotten:");
 }
 
 function move(from, to) {
@@ -124,13 +122,19 @@ function getResponse() {
 	var lineFound = false;
 	var length = 0;
 	while(!lineFound) {
+		var arrLen = socket.rQlen();
 		var arr = socket.get_rQ();
-		for (let i = 0; i < socket.rQlen(); i++) {
-			if (arr[i] = 10) {
-				length = i+1;
+		var startingIndex = socket.get_rQi();
+		for (let i = startingIndex; i < startingIndex + arrLen; i++) {
+			console.log(i);
+			console.log(arr[i] == 10)
+			if (arr[i] == 10) {
+				length = i+1 - startingIndex;
 				lineFound = true;
+				break;
 			}
 		}
+		lineFound = true;
 	}
 	return socket.rQshiftStr(length);
 }
