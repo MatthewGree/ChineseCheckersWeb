@@ -1,0 +1,44 @@
+.cell {
+    height: 40px;
+    width: 35px;
+    background-color: white;
+    border-radius: 50%;
+}
+
+.playableCell {
+    background-color: gray;
+}
+
+.checker {
+    position: relative;
+    top: 5%;
+    left: 20%;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    
+}
+
+.checker1 {
+    background-color: greenyellow;
+}
+
+.checker2 {
+    background-color: rgb(205, 0, 247);
+}
+
+.checker3 {
+    background-color: red;
+}
+
+.checker4 {
+    background-color: lightseagreen;
+}
+
+.checker5 {
+    background-color: pink;
+}
+
+.checker6 {
+    background-color: yellow;
+}
