@@ -5,6 +5,34 @@
     border-radius: 50%;
 }
 
+#connectButton {
+    background-color: darkred;
+    font-weight: bold;
+    width: 100px;
+    color: white;
+    text-align: center;
+}
+
+#skipButton {
+    background-color: darkgreen;
+    font-weight: bold;
+    color: white;
+    display: none;
+    text-align: center;
+}
+
+#messageField {
+    background-color: darkgreen;
+    font-weight: bold;
+    width: 200px;
+    height: 30px;
+    padding: 15px 0;
+    color: white;
+    display: none;
+    text-align: center;
+    
+}
+
 .playableCell {
     background-color: gray;
 }

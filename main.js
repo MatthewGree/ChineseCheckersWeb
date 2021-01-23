@@ -1,11 +1,18 @@
 
-
+var messageBox ;
 var canSend = false;
 var moveFrom = "";
 var moveTo = ""
 var currentMoveFrom = "";
 
 var socket = new Websock("ws://localhost:4888");
+
+function skipTurn() {
+	if (canSend) {
+		canSend = false;
+		socket.send_string("skip_turn\n");
+	}
+}
 
 function handleClick(id) {
 	if (canSend && moveFrom != "") {
@@ -58,9 +65,16 @@ function fillWithCheckers(players) {
 }
 
 function initServerConnection() {
+	messageBox.innerHTML = "Connecting...";
+	var connectButton = document.getElementById("connectButton");
+	connectButton.style.display="none";
+	messageBox.style.display="block";
+	var skipButton = document.getElementById("skipButton");
+	skipButton.style.display="block";
 	socket.open("ws://localhost:4888");
 	console.log("setting startGame function");
 	socket.on('open', startGame)
+
 }
 
 function startGame() {
@@ -71,49 +85,57 @@ function startGame() {
 function handleServer() {
 	console.log("getting response from server");
 	var response = getResponse();
+	var arr = response.split("\n");
 	console.log("response gotten from server: " + response);
-	var messageBox = document.getElementById("messageField");
-	switch (response) {
-		case "your_turn\n":
+	for (let i = 0; i < arr.length; i++) {
+	switch (arr[i]) {
+		case "your_turn":
 			messageBox.innerHTML = "It's your turn";
 			canSend = true;
 			break;
-		case "move_success\n":
-			messageBox.innerHTML = "Move ok";
+		case "move_success":
+			messageBox.innerHTML = "Move ok, wait for your turn";
 			move(currentMoveFrom, moveTo);
 			break;
-		case "move_wrong\n":
+		case "move_wrong":
 			messageBox.innerHTML = "Wrong move";
 			canSend = true;
 			break;
-		case "you_finished\n":
+		case "you_finished":
 			messageBox.innerHTML = "You finished";
 			break;
-		case "skip_success\n":
+		case "skip_success":
 			messageBox.innerHTML = "You skipped a turn";
 		default:
-			initCheckers(response);
-			var arr = response.split(" ");
-			if (arr[0] == "move") {
-				move(arr[1], arr[2].trim());
+			initCheckers(arr[i]);
+			var arrr = arr[i].split(" ");
+			if (arrr[0] == "move") {
+				move(arrr[1], arrr[2].trim());
 			}
 			break;
+	}
 	}
 }
 
 function initCheckers(type) {
-	if (type == "TwoPlayerChineseCheckers\n") {
+	var inited = false;
+	if (type == "TwoPlayerChineseCheckers") {
 		fillWithCheckers(2);
-		socket.send_string("OK\n")
-	} else if (type == "ThreePlayerChineseCheckers\n") {
+		inited = true;
+	} else if (type == "ThreePlayerChineseCheckers") {
 		fillWithCheckers(3);
-		socket.send_string("OK\n")
-	}  else if (type == "FourPlayerChineseCheckers\n") {
+		inited = true;
+	}  else if (type == "FourPlayerChineseCheckers") {
 		fillWithCheckers(4);
-		socket.send_string("OK\n")
-	}  else if (type == "SixPlayerChineseCheckers\n") {
+		inited = true;
+	}  else if (type == "SixPlayerChineseCheckers") {
 		fillWithCheckers(6);
-		socket.send_string("OK\n")
+		inited = true;
+	}
+
+	if (inited) {
+		socket.send_string("OK\n");
+		messageBox.innerHTML = "Wait for your turn";
 	}
 	
 }
@@ -142,6 +164,7 @@ function createTable() {
 }
 
 function createBoard() {
+	messageBox =  document.getElementById("messageField");
 	createTable();
 	highlightPlayableFields();
 }
@@ -175,7 +198,7 @@ function getTrianglePoints(xBeg, yBeg, height, verticalDirection) {
 }
 
 function getResponse() {
-	var lineFound = false;
+	/*var lineFound = false;
 	var length = 0;
 	while(!lineFound) {
 		var arrLen = socket.rQlen();
@@ -189,6 +212,6 @@ function getResponse() {
 			}
 		}
 		lineFound = true;
-	}
-	return socket.rQshiftStr(length);
+	}*/
+	return socket.rQshiftStr(socket.rQlen());
 }
