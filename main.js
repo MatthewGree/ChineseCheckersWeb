@@ -1,7 +1,21 @@
 
 
+var canSend = false;
+var moveFrom = "";
 
-var socket;
+var socket = new Websock();
+
+function handleClick(id) {
+	if (canSend && moveFrom != "") {
+		//console.log("move " + moveFrom + " " + id);
+		socket.send_string("move " + moveFrom + " " + id);
+		moveFrom = "";
+		canSend = false;
+	} else {
+		console.log("changing to " + id);
+		moveFrom = id;
+	}
+}
 
 function fillWithCheckers(players) {
 	var playerCoordinates = [];
@@ -40,16 +54,13 @@ function fillWithCheckers(players) {
 }
 
 function initServerConnection() {
-	socket = new Websock();
 	socket.open("ws://localhost:4888");
-	socket.send_string("hello server\n");
-	var isOpen = false;
-	socket.on('open', function(event) {
-		isOpen = true;
-	});
-	while (!isOpen) {
-
-	}
+	console.log("waiting for response");
+	var response = getResponse();
+	console.log("response gotten: " + getResponse());
+	console.log("waiting for response");
+	var response = getResponse();
+	console.log("response gotten: " + getResponse());
 }
 
 function move(from, to) {
@@ -87,6 +98,9 @@ function highlightPlayableFields() {
 	for (let i = 0; i < triangle.length; i++) {
 		var cellHTML = document.getElementById(triangle[i]);
 		cellHTML.classList.add("playableCell");
+		cellHTML.onclick = function () {
+			handleClick(this.id);
+		}
 	}
 }
 
@@ -106,3 +120,17 @@ function getTrianglePoints(xBeg, yBeg, height, verticalDirection) {
 	return result;
 }
 
+function getResponse() {
+	var lineFound = false;
+	var length = 0;
+	while(!lineFound) {
+		var arr = socket.get_rQ();
+		for (let i = 0; i < socket.rQlen(); i++) {
+			if (arr[i] = 10) {
+				length = i+1;
+				lineFound = true;
+			}
+		}
+	}
+	return socket.rQshiftStr(length);
+}
