@@ -3,14 +3,16 @@
 var canSend = false;
 var moveFrom = "";
 var moveTo = ""
+var currentMoveFrom = "";
 
-var socket = new Websock("localhost:4888");
+var socket = new Websock("ws://localhost:4888");
 
 function handleClick(id) {
 	if (canSend && moveFrom != "") {
-		//console.log("move " + moveFrom + " " + id);
+		console.log("Sending: move " + moveFrom + " " + id);
 		moveTo = id;
-		socket.send_string("move " + moveFrom + " " + moveTo);
+		socket.send_string("move " + moveFrom + " " + moveTo + "\n");
+		currentMoveFrom = moveFrom;
 		moveFrom = "";
 		canSend = false;
 	} else {
@@ -56,25 +58,20 @@ function fillWithCheckers(players) {
 }
 
 function initServerConnection() {
-	socket.open("localhost:4888");
+	socket.open("ws://localhost:4888");
 	console.log("setting startGame function");
 	socket.on('open', startGame)
 }
 
 function startGame() {
 	console.log("getting type from server");
-	var type = getResponse();
-	console.log("type gotten from server");
-	initCheckers(type);
-	console.log("type set server");
-	socket.send_string("OK\n")
 	socket.on('message', handleServer)
 }
 
 function handleServer() {
 	console.log("getting response from server");
 	var response = getResponse();
-	console.log("response gotten from server");
+	console.log("response gotten from server: " + response);
 	var messageBox = document.getElementById("messageField");
 	switch (response) {
 		case "your_turn\n":
@@ -82,7 +79,8 @@ function handleServer() {
 			canSend = true;
 			break;
 		case "move_success\n":
-			move(moveFrom, moveTo);
+			messageBox.innerHTML = "Move ok";
+			move(currentMoveFrom, moveTo);
 			break;
 		case "move_wrong\n":
 			messageBox.innerHTML = "Wrong move";
@@ -94,6 +92,11 @@ function handleServer() {
 		case "skip_success\n":
 			messageBox.innerHTML = "You skipped a turn";
 		default:
+			initCheckers(response);
+			var arr = response.split(" ");
+			if (arr[0] == "move") {
+				move(arr[1], arr[2].trim());
+			}
 			break;
 	}
 }
@@ -101,13 +104,18 @@ function handleServer() {
 function initCheckers(type) {
 	if (type == "TwoPlayerChineseCheckers\n") {
 		fillWithCheckers(2);
+		socket.send_string("OK\n")
 	} else if (type == "ThreePlayerChineseCheckers\n") {
 		fillWithCheckers(3);
+		socket.send_string("OK\n")
 	}  else if (type == "FourPlayerChineseCheckers\n") {
 		fillWithCheckers(4);
+		socket.send_string("OK\n")
 	}  else if (type == "SixPlayerChineseCheckers\n") {
 		fillWithCheckers(6);
+		socket.send_string("OK\n")
 	}
+	
 }
 
 function move(from, to) {
@@ -136,7 +144,6 @@ function createTable() {
 function createBoard() {
 	createTable();
 	highlightPlayableFields();
-	fillWithCheckers(6);
 }
 
 function highlightPlayableFields() {
@@ -175,8 +182,6 @@ function getResponse() {
 		var arr = socket.get_rQ();
 		var startingIndex = socket.get_rQi();
 		for (let i = startingIndex; i < startingIndex + arrLen; i++) {
-			console.log(i);
-			console.log(arr[i] == 10)
 			if (arr[i] == 10) {
 				length = i+1 - startingIndex;
 				lineFound = true;

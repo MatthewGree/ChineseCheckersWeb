@@ -12,9 +12,10 @@
  * read binary data off of the receive queue.
  */
 
- /*[module]
- import Util from "./util.js";
-*/
+/* [module]
+ * import Util from "./util";
+ */
+
 /*jslint browser: true, bitwise: true */
 /*global Util*/
 
