@@ -2,17 +2,19 @@
 
 var canSend = false;
 var moveFrom = "";
+var moveTo = ""
 
-var socket = new Websock("ws://localhost:4888");
+var socket = new Websock("localhost:4888");
 
 function handleClick(id) {
 	if (canSend && moveFrom != "") {
 		//console.log("move " + moveFrom + " " + id);
-		socket.send_string("move " + moveFrom + " " + id);
+		moveTo = id;
+		socket.send_string("move " + moveFrom + " " + moveTo);
 		moveFrom = "";
 		canSend = false;
 	} else {
-		console.log("changing to " + id);
+		console.log("changing moveFrom to " + id);
 		moveFrom = id;
 	}
 }
@@ -54,11 +56,58 @@ function fillWithCheckers(players) {
 }
 
 function initServerConnection() {
-	socket.open("ws://localhost:4888");
-	console.log("waiting for response");
-	console.log("response gotten: ");
-	console.log("waiting for response");
-	console.log("response gotten:");
+	socket.open("localhost:4888");
+	console.log("setting startGame function");
+	socket.on('open', startGame)
+}
+
+function startGame() {
+	console.log("getting type from server");
+	var type = getResponse();
+	console.log("type gotten from server");
+	initCheckers(type);
+	console.log("type set server");
+	socket.send_string("OK\n")
+	socket.on('message', handleServer)
+}
+
+function handleServer() {
+	console.log("getting response from server");
+	var response = getResponse();
+	console.log("response gotten from server");
+	var messageBox = document.getElementById("messageField");
+	switch (response) {
+		case "your_turn\n":
+			messageBox.innerHTML = "It's your turn";
+			canSend = true;
+			break;
+		case "move_success\n":
+			move(moveFrom, moveTo);
+			break;
+		case "move_wrong\n":
+			messageBox.innerHTML = "Wrong move";
+			canSend = true;
+			break;
+		case "you_finished\n":
+			messageBox.innerHTML = "You finished";
+			break;
+		case "skip_success\n":
+			messageBox.innerHTML = "You skipped a turn";
+		default:
+			break;
+	}
+}
+
+function initCheckers(type) {
+	if (type == "TwoPlayerChineseCheckers\n") {
+		fillWithCheckers(2);
+	} else if (type == "ThreePlayerChineseCheckers\n") {
+		fillWithCheckers(3);
+	}  else if (type == "FourPlayerChineseCheckers\n") {
+		fillWithCheckers(4);
+	}  else if (type == "SixPlayerChineseCheckers\n") {
+		fillWithCheckers(6);
+	}
 }
 
 function move(from, to) {
